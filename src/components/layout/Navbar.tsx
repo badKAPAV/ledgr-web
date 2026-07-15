@@ -66,7 +66,7 @@ export function Navbar() {
               className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm shadow-[0_0_15px_rgba(164,0,0,0.15)] hover:shadow-[0_0_20px_rgba(164,0,0,0.4)]"
             >
               <AndroidLogo weight="fill" className="w-5 h-5" />
-              <span>Get the App</span>
+              <span>Get the App for free</span>
             </a>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -99,7 +99,7 @@ export function Navbar() {
               className="mt-4 flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-primary text-white font-medium shadow-[0_0_15px_rgba(164,0,0,0.3)]"
             >
               <AndroidLogo weight="fill" className="w-5 h-5" />
-              <span>Download on Play Store</span>
+              <span>Install for free</span>
             </a>
           </nav>
         </div>
