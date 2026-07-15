@@ -1,0 +1,225 @@
+import { useEffect } from "react"
+import { motion } from "framer-motion"
+import { Lightbulb, MagicWand, Target, Users, CalendarCheck, Wallet, Sparkle } from "@phosphor-icons/react"
+
+export function Docs() {
+  useEffect(() => {
+    document.title = "Documentation — Ledgr"
+  }, [])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl"
+    >
+      <h1 className="text-4xl font-bold text-white tracking-tight mb-4">Ledgr Documentation</h1>
+      <p className="text-lg text-white/60 mb-12 leading-relaxed">
+        Everything you need to know to master Ledgr's powerful, offline-first expense tracking capabilities.
+      </p>
+
+      <div className="space-y-24">
+        
+        {/* 1. Home & Dashboard */}
+        <section id="home" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-3">
+            Home & Dashboard
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p>
+              The home page is your financial command center. It provides an immediate <strong>Monthly and Daily Budget Overview</strong>—showing exactly what is "safe to spend" today without breaking your long-term goals. You'll also find your <strong>Folders and Goals Watchlist</strong> right at the top to keep you on track, followed by your <strong>Recent Transactions</strong> and overall money overview.
+            </p>
+            
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-6 mt-6">
+              <h4 className="text-primary font-semibold mb-3 flex items-center gap-2 text-lg">
+                <MagicWand weight="fill" className="w-5 h-5" />
+                The Magical Pending Transactions
+              </h4>
+              <p className="text-white/80">
+                If you have Auto Log enabled, you unlock this magical section. All your pending transactions (intercepted from messages) show up here automatically. Tap any transaction to autofill all details, edit, and save.
+              </p>
+              <div className="mt-4 flex flex-col gap-3">
+                <div className="flex items-start gap-3 bg-cardBackground p-4 rounded-lg border border-white/5">
+                  <Lightbulb weight="fill" className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white">Quick Tip: Bulk Record</strong>
+                    <p className="text-sm mt-1">Go to the "See All" menu and click the <strong>"Auto Record"</strong> button to magically record all of your pending transactions at once ✨.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-cardBackground p-4 rounded-lg border border-white/5">
+                  <Sparkle weight="fill" className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white">Quick Tip: Global Magic Menu</strong>
+                    <p className="text-sm mt-1">Long tap the <strong>"+ Create"</strong> button in the bottom center to reveal a hidden global magic menu.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. Transactions & Budgets */}
+        <section id="transactions-budget" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4">
+            Transactions & Budgets Tab
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70">
+            <p>This tab is split into three powerful sub-views:</p>
+            <ul className="space-y-3 mt-4">
+              <li><strong className="text-white">History:</strong> The complete timeline of your transactions, organized chronologically.</li>
+              <li><strong className="text-white">Categories:</strong> Groups your transactions by category. It cleanly separates expenses and income so you get a proper look at exactly where you spend and earn.</li>
+              <li><strong className="text-white">Budgets:</strong> Your total budget setup. Create and maintain overall budgets, as well as specific budgets for individual categories.</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* 3. My Accounts */}
+        <section id="accounts" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-3">
+            <Wallet className="w-8 h-8 text-white/50" />
+            My Accounts
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p>
+              This section houses all of your transaction accounts. This includes accounts you manually created, accounts generated by Auto Save, and your Cash account.
+            </p>
+            <p>
+              <strong>Credit Accounts</strong> contain a dedicated credit health overview, displaying your limits, spendable amount, and detailed monthly statements.
+            </p>
+            <p>
+              You can create new accounts by clicking the "+ Account" button at the bottom center.
+            </p>
+            <div className="flex items-start gap-3 bg-cardBackground p-4 rounded-lg border border-white/5 mt-4">
+              <Lightbulb weight="fill" className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-white">Quick Tip: Inline Balance Editing</strong>
+                <p className="text-sm mt-1">Click the "pencil" button right next to any non-credit account balance to edit the amount directly. Ledgr will automatically create a compensating transaction to balance it out!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Folders and Events */}
+        <section id="folders" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4">
+            Folders & Events
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p>
+              Folders are a core feature of Ledgr. They take the traditional concept of "tags" and turn it into something significantly more meaningful. Folders can be customized with specific icons and colors for quick visual identification.
+            </p>
+            <p>
+              <strong>Folder Budgets:</strong> You can assign budgets to folders that reset monthly, daily, or never (one-time budgets). They also provide custom budget warnings.
+            </p>
+            
+            <h4 className="text-white font-semibold text-xl mt-6 mb-3">Event Mode</h4>
+            <p>
+              Event mode is incredibly powerful when combined with Auto Save or Quick Save. If you have a folder for a specific event (e.g., a "Vietnam Trip" or "Office Commute"), simply turn on <strong>Event Mode</strong> for that period. All new transactions will automatically select and route into that folder. It's a creative feature designed to adapt to your lifestyle.
+            </p>
+          </div>
+        </section>
+
+        {/* 5. People and Debts */}
+        <section id="people-debts" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-3">
+            <Users className="w-8 h-8 text-white/50" />
+            People & Debts
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p>
+              You can assign a "Person" to any transaction by selecting someone from your phonebook or creating a custom contact. Once linked, all income and expenses associated with that person appear in the Payments tab, allowing you to track total transaction volume per person.
+            </p>
+            <p>
+              <strong>Debts & Loans Tab:</strong> Want to track money without creating formal transactions? Use this tab to record debts or loans from people directly. You get a clear visual representation of outstanding debts and can record payback payments right from this screen. 
+              <br /><span className="text-white/50 italic mt-2 block">It's a great way to track money that never gets paid back lol.</span>
+            </p>
+          </div>
+        </section>
+
+        {/* 6. Planning */}
+        <section id="planning" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-3">
+            <Target className="w-8 h-8 text-white/50" />
+            Planning
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-6">
+            <p>This page is where all of your financial planning happens, split into three tabs:</p>
+            
+            <div>
+              <h4 className="text-white font-semibold mb-2">1. Goals</h4>
+              <p>For your financial aspirations—whether it's a new bike or a trip to Vietnam. Set the target amount, define the target timeline, and let Ledgr help you plan your way to achieving it.</p>
+            </div>
+            
+            <div>
+              <h4 className="text-white font-semibold mb-2">2. Recurring</h4>
+              <p>Manage subscription-based transactions like car EMIs, Netflix, or YouTube Premium. Ledgr sends you notifications based on reminders you configure.</p>
+              <div className="bg-cardBackground px-4 py-2 rounded border border-white/10 text-sm inline-block mt-2">
+                <strong className="text-white">Note:</strong> Toggling "Create first transaction" will automatically record the first entry when you save the recurring setup.
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-2">3. Categories</h4>
+              <p>Manage existing categories, create custom ones, and most importantly, <strong>edit keywords</strong>. Keywords allow the Auto Log feature to accurately capture and assign categories directly from intercepted messages.</p>
+              <div className="flex items-start gap-3 bg-cardBackground p-4 rounded-lg border border-white/5 mt-4">
+                <Lightbulb weight="fill" className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-white">Quick Tip: Default Category</strong>
+                  <p className="text-sm mt-1">Long tap on any category in this tab to instantly set it as your global default category.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Quick Save and Auto Log */}
+        <section id="auto-log" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 text-primary">
+            Quick Save & Auto Log
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p className="text-lg text-white">These features are the heart of Ledgr and what makes it truly unique.</p>
+            
+            <p>
+              <strong>Auto Log</strong> watches your notifications (operating 100% offline and on-device) and converts banking messages into actionable Ledgr notifications. Tap <strong>"Quick Save"</strong> on the notification and your transaction is saved instantly with ZERO typing.
+            </p>
+            <p>
+              <strong>Absolute Automation:</strong> If you have <em>Auto Save</em> turned on for your device, Ledgr intercepts the message and saves the transaction instantly without you even needing to tap the "Quick Save" button. It's insane.
+            </p>
+            <p className="text-sm text-white/50 border-l-2 border-white/10 pl-4 mt-6">
+              This magic is powered by a clever piece of technology: a custom Python script pipeline supporting Kotlin clips, extensive Regex parsing, and instant OTA (Over-The-Air) updates.
+            </p>
+          </div>
+        </section>
+
+        {/* 8. Transaction */}
+        <section id="transaction" className="scroll-mt-24">
+          <h2 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-3">
+            <CalendarCheck className="w-8 h-8 text-white/50" />
+            Creating Transactions
+          </h2>
+          <div className="prose prose-invert max-w-none text-white/70 space-y-4">
+            <p>
+              There are 3 kinds of transactions: <strong>Expense</strong>, <strong>Income</strong>, and <strong>Transfer</strong>.
+            </p>
+            <p>
+              To eliminate friction, the Date, Time, Account, Payment Method, Category, and Folder (if Event Mode is active) are <strong>auto-selected</strong> based on your defaults. You only need to:
+            </p>
+            <ul className="list-disc pl-5">
+              <li>Enter the Amount</li>
+              <li>Add a description (optional)</li>
+              <li>Link a recurring rule, add to folders, attach an image, link a transfer, or convert currencies</li>
+            </ul>
+            <p>
+              While there are many advanced options available, the fundamentals are always done for you so that saving a transaction doesn't confuse you. 
+            </p>
+            <div className="bg-cardBackground px-5 py-4 rounded-lg border border-white/10 mt-4">
+              <strong className="text-white">From Pending:</strong> If the transaction originates from Ledgr's pending transactions list, <em>everything</em> will already be filled out. Just review the adjustments and hit save—it's that easy.
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </motion.div>
+  )
+}
