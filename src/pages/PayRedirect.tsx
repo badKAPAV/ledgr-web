@@ -4,15 +4,18 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { SplitDocument, ParticipantData } from '../types/split';
 import { QRCodeSVG } from 'qrcode.react';
+import { motion } from 'framer-motion';
 import { 
-  CheckCircle2, 
+  CheckCircle, 
   Copy, 
-  Smartphone, 
-  AlertCircle, 
+  DeviceMobile, 
+  WarningCircle, 
   ShieldCheck, 
   ArrowLeft,
-  QrCode
-} from 'lucide-react';
+  QrCode,
+  Lightning
+} from '@phosphor-icons/react';
+import logo from '../assets/ledgr_logo.png';
 
 export function PayRedirect() {
   const [searchParams] = useSearchParams();
@@ -30,6 +33,10 @@ export function PayRedirect() {
   // Detect mobile user agent (Android / iOS)
   const isMobile = useMemo(() => {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }, []);
+
+  useEffect(() => {
+    document.title = "Pay Split — Ledgr";
   }, []);
 
   useEffect(() => {
@@ -91,9 +98,18 @@ export function PayRedirect() {
   // 1. Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0E11] text-[#F3F4F6] flex flex-col items-center justify-center p-4">
-        <div className="w-10 h-10 border-4 border-[#3B82F6] border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-sm text-gray-400 font-medium">Retrieving Ledgr Split Details...</p>
+      <div className="min-h-screen bg-background text-text-primary flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[120px] -z-10" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <img src={logo} alt="Ledgr Logo" className="w-12 h-12 object-contain animate-pulse" />
+            <div className="absolute -inset-2 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          </div>
+          <div className="text-center">
+            <h3 className="font-heading font-semibold text-white text-base">Retrieving Ledgr Split</h3>
+            <p className="text-xs text-white/50 mt-1">Connecting to secure transaction ledger...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -101,20 +117,35 @@ export function PayRedirect() {
   // 2. Error / Fallback State
   if (error || !splitData || !participant) {
     return (
-      <div className="min-h-screen bg-[#0D0E11] text-[#F3F4F6] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#16181D] border border-[#23272F] rounded-2xl p-6 text-center shadow-xl">
-          <div className="w-12 h-12 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-6 h-6" />
+      <div className="min-h-screen bg-background text-text-primary flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10" />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="max-w-md w-full bg-cardBackground border border-white/10 rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-24 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background/0 to-background/0" />
+          
+          <div className="relative z-10">
+            <div className="w-12 h-12 bg-primary/15 text-primary border border-primary/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <WarningCircle weight="duotone" className="w-7 h-7 text-primary" />
+            </div>
+            
+            <h2 className="text-2xl font-bold font-heading text-white mb-2 tracking-tight">Split Not Found</h2>
+            <p className="text-sm text-white/60 mb-6 leading-relaxed">
+              {error || 'Could not verify payment information.'}
+            </p>
+            
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center gap-2 text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full transition-all shadow-[0_0_20px_rgba(164,0,0,0.3)] hover:shadow-[0_0_30px_rgba(164,0,0,0.5)]"
+            >
+              <ArrowLeft weight="bold" className="w-4 h-4" /> 
+              <span>Go to Ledgr Homepage</span>
+            </Link>
           </div>
-          <h2 className="text-xl font-bold mb-2">Split Not Found</h2>
-          <p className="text-sm text-gray-400 mb-6">{error || 'Could not verify payment information.'}</p>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold bg-[#23272F] hover:bg-[#2e343e] text-white px-5 py-2.5 rounded-xl transition"
-          >
-            <ArrowLeft className="w-4 h-4" /> Go to Ledgr Homepage
-          </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -126,122 +157,161 @@ export function PayRedirect() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0D0E11] text-[#F3F4F6] flex flex-col justify-between p-4 md:p-8">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col justify-between p-4 sm:p-6 md:p-8 relative overflow-hidden">
+      {/* Abstract Ambient Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[140px] -z-10 pointer-events-none" />
+
       {/* Navbar Banner */}
-      <header className="max-w-md md:max-w-2xl mx-auto w-full flex items-center justify-between py-2 border-b border-[#23272F]/60 mb-6">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gradient-to-tr from-[#3B82F6] to-[#8B5CF6] rounded-lg flex items-center justify-center font-bold text-sm text-white">
-            L
-          </div>
-          <span className="font-bold tracking-tight text-lg">Ledgr</span>
+      <header className="max-w-md md:max-w-xl mx-auto w-full flex items-center justify-between py-3 border-b border-white/5 mb-6 sm:mb-8">
+        <Link to="/" className="flex items-center gap-3 shrink-0 group">
+          <img 
+            src={logo} 
+            alt="Ledgr Logo" 
+            className="w-8 h-8 sm:w-9 sm:h-9 object-contain transition-transform group-hover:scale-105" 
+          />
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-white font-ledgr">ledgr</span>
         </Link>
-        <span className="text-xs px-2.5 py-1 bg-blue-500/10 text-[#3B82F6] border border-blue-500/20 rounded-full font-medium">
-          UPI Instant Settlement
+        <span className="text-xs px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full font-medium flex items-center gap-1.5">
+          <Lightning weight="fill" className="w-3.5 h-3.5 text-primary" />
+          <span>Instant UPI Settlement</span>
         </span>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-md md:max-w-xl mx-auto w-full bg-[#16181D] border border-[#23272F] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-        {/* Glow Accent */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#3B82F6]/10 rounded-full blur-3xl pointer-events-none" />
+      <motion.main 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="max-w-md md:max-w-lg mx-auto w-full bg-cardBackground border border-white/10 rounded-3xl p-6 sm:p-8 md:p-9 shadow-2xl relative overflow-hidden backdrop-blur-md"
+      >
+        {/* Subtle Radial Gradient Glow at top */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/25 via-background/0 to-background/0 pointer-events-none" />
 
-        {/* Bill Context */}
-        <div className="text-center mb-6">
-          <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">{formattedDate}</span>
-          <h1 className="text-2xl font-bold mt-1 tracking-tight">{splitData.title}</h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Created by <span className="text-gray-200 font-medium">{splitData.payeeName}</span> • Total Bill: ₹{splitData.totalAmount.toFixed(2)}
-          </p>
-        </div>
-
-        {/* Amount Badge */}
-        <div className="bg-[#0D0E11] border border-[#23272F] rounded-2xl p-5 mb-6 text-center">
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Share</span>
-          <div className="text-4xl font-extrabold text-white mt-1 tracking-tight">
-            ₹{participant.shareAmount.toFixed(2)}
-          </div>
-          <p className="text-xs text-blue-400/80 mt-1">Paying as: {participant.name}</p>
-        </div>
-
-        {/* Payee Info & Actions */}
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center justify-between text-xs bg-[#0D0E11]/60 border border-[#23272F]/50 px-4 py-3 rounded-xl">
-            <span className="text-gray-400">Paying To (UPI VPA):</span>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-gray-200 font-medium">{splitData.payeeVpa}</span>
-              <button 
-                onClick={() => handleCopy(splitData.payeeVpa, 'vpa')}
-                className="p-1 hover:bg-[#23272F] rounded text-gray-400 hover:text-white transition"
-                title="Copy UPI ID"
-              >
-                {copiedVpa ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Platform Conditional Interaction */}
-        {isMobile ? (
-          /* MOBILE VIEW: Large Tap to Pay Button */
-          <div className="space-y-3">
-            <button
-              onClick={handleMobilePayment}
-              className="w-full py-4 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-blue-600 hover:to-blue-700 text-white font-bold text-base rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition active:scale-[0.98]"
-            >
-              <Smartphone className="w-5 h-5" />
-              <span>Tap to Pay ₹{participant.shareAmount.toFixed(2)}</span>
-            </button>
-            <p className="text-center text-[11px] text-gray-400">
-              Opens standard UPI app selection (GPay, PhonePe, Paytm, CRED)
+        <div className="relative z-10">
+          {/* Bill Context */}
+          <div className="text-center mb-6">
+            <span className="text-[11px] font-mono uppercase tracking-widest font-medium text-white/50 bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
+              {formattedDate}
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold font-heading text-white mt-2.5 tracking-tight">
+              {splitData.title}
+            </h1>
+            <p className="text-xs text-white/60 mt-1.5">
+              Created by <span className="text-white font-medium">{splitData.payeeName}</span> • Total Bill: <span className="font-mono text-white/90">₹{splitData.totalAmount.toFixed(2)}</span>
             </p>
           </div>
-        ) : (
-          /* DESKTOP VIEW: QR Code & Clipboard Utilities */
-          <div className="flex flex-col items-center">
-            <div className="bg-white p-4 rounded-2xl shadow-inner border border-gray-200 mb-3">
-              <QRCodeSVG 
-                value={participant.upiLink} 
-                size={180}
-                level="M"
-                includeMargin={false}
-              />
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
-              <QrCode className="w-3.5 h-3.5 text-[#3B82F6]" />
-              <span>Scan using any UPI app to pay</span>
-            </div>
 
-            <div className="w-full grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleCopy(splitData.payeeVpa, 'vpa')}
-                className="py-2.5 px-3 bg-[#0D0E11] hover:bg-[#23272F] border border-[#23272F] text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition"
-              >
-                {copiedVpa ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedVpa ? 'UPI Copied' : 'Copy UPI ID'}</span>
-              </button>
-              
-              <button
-                onClick={() => handleCopy(participant.shareAmount.toString(), 'amount')}
-                className="py-2.5 px-3 bg-[#0D0E11] hover:bg-[#23272F] border border-[#23272F] text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition"
-              >
-                {copiedAmount ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedAmount ? 'Amount Copied' : 'Copy Amount'}</span>
-              </button>
+          {/* Amount Badge */}
+          <div className="bg-background/90 border border-white/10 rounded-2xl p-5 sm:p-6 mb-6 text-center relative overflow-hidden group">
+            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" />
+            
+            <span className="text-[11px] font-semibold text-primary uppercase tracking-widest">
+              Your Share
+            </span>
+            <div className="text-4xl sm:text-5xl font-extrabold font-heading text-white mt-1.5 tracking-tight">
+              ₹{participant.shareAmount.toFixed(2)}
+            </div>
+            <div className="mt-2 inline-flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-xs text-white/70">
+              <span>Paying as:</span>
+              <span className="text-white font-medium">{participant.name}</span>
             </div>
           </div>
-        )}
 
-        {/* Security Stamp */}
-        <div className="mt-8 pt-4 border-t border-[#23272F] flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-green-400" />
-          <span>Verified Direct NPCI UPI Link • Zero Middleman Fees</span>
+          {/* Payee Info & Actions */}
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center justify-between text-xs bg-background/60 border border-white/5 px-4 py-3 rounded-xl">
+              <span className="text-white/50">Paying To (UPI VPA):</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-white font-medium tracking-wide">{splitData.payeeVpa}</span>
+                <button 
+                  onClick={() => handleCopy(splitData.payeeVpa, 'vpa')}
+                  className="p-1.5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+                  title="Copy UPI ID"
+                  aria-label="Copy UPI ID"
+                >
+                  {copiedVpa ? (
+                    <CheckCircle weight="fill" className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy weight="bold" className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Conditional Interaction */}
+          {isMobile ? (
+            /* MOBILE VIEW: Large Tap to Pay Button */
+            <div className="space-y-3">
+              <button
+                onClick={handleMobilePayment}
+                className="w-full py-4 px-6 bg-primary hover:bg-primary/90 active:scale-[0.98] text-white font-bold text-base rounded-2xl shadow-[0_0_25px_rgba(164,0,0,0.35)] hover:shadow-[0_0_35px_rgba(164,0,0,0.5)] flex items-center justify-center gap-2.5 transition-all duration-200"
+              >
+                <DeviceMobile weight="duotone" className="w-5 h-5 text-white" />
+                <span>Tap to Pay ₹{participant.shareAmount.toFixed(2)}</span>
+              </button>
+              <p className="text-center text-[11px] text-white/50">
+                Opens standard UPI app picker (GPay, PhonePe, Paytm, CRED)
+              </p>
+            </div>
+          ) : (
+            /* DESKTOP VIEW: QR Code & Clipboard Utilities */
+            <div className="flex flex-col items-center">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-2xl border border-white/20 mb-3 group hover:scale-[1.02] transition-transform">
+                <QRCodeSVG 
+                  value={participant.upiLink} 
+                  size={190}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+              
+              <div className="flex items-center gap-1.5 text-xs text-white/60 mb-4 font-medium">
+                <QrCode weight="duotone" className="w-4 h-4 text-primary" />
+                <span>Scan using any UPI app to pay</span>
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => handleCopy(splitData.payeeVpa, 'vpa')}
+                  className="py-3 px-3 bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all group"
+                >
+                  {copiedVpa ? (
+                    <CheckCircle weight="fill" className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy weight="bold" className="w-4 h-4 text-white/60 group-hover:text-primary transition-colors" />
+                  )}
+                  <span>{copiedVpa ? 'UPI Copied' : 'Copy UPI ID'}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleCopy(participant.shareAmount.toString(), 'amount')}
+                  className="py-3 px-3 bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all group"
+                >
+                  {copiedAmount ? (
+                    <CheckCircle weight="fill" className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy weight="bold" className="w-4 h-4 text-white/60 group-hover:text-primary transition-colors" />
+                  )}
+                  <span>{copiedAmount ? 'Amount Copied' : 'Copy Amount'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Security Stamp */}
+          <div className="mt-8 pt-5 border-t border-white/5 flex items-center justify-center gap-2 text-[11px] text-white/40">
+            <ShieldCheck weight="duotone" className="w-4 h-4 text-primary" />
+            <span>Verified Direct NPCI UPI Link • Zero Middleman Fees</span>
+          </div>
         </div>
-      </main>
+      </motion.main>
 
       {/* Footer */}
-      <footer className="max-w-md md:max-w-xl mx-auto w-full text-center py-6 text-xs text-gray-500">
-        <p>Powered by <span className="text-gray-300 font-medium">Ledgr</span> — Privacy-First Automated Finance</p>
+      <footer className="max-w-md md:max-w-xl mx-auto w-full text-center py-6 text-xs text-white/40">
+        <p>
+          Powered by <span className="font-ledgr text-white/80 font-bold tracking-tight">ledgr</span> — Privacy-First Automated Finance
+        </p>
       </footer>
     </div>
   );
