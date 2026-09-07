@@ -8,6 +8,7 @@ import { Tech } from "./pages/Tech"
 import { Support } from "./pages/Support"
 import { Privacy } from "./pages/Privacy"
 import { About } from "./pages/About"
+import { PayRedirect } from "./pages/PayRedirect"
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/about" element={<About />} />
       </Route>
+
+      {/* UPI Gateway Route */}
+      <Route path="/pay" element={<PayRedirect />} />
     </Routes>
   )
 }
