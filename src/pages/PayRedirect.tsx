@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { SplitDocument, ParticipantData } from '../types/split';
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
@@ -10,14 +10,14 @@ import {
   Copy, 
   WarningCircle, 
   ShieldCheck, 
-  ArrowLeft,
-  QrCode,
-  Lightning,
-  DownloadSimple,
-  ArrowsOut,
-  X,
-  Sparkle,
-  ArrowSquareOut
+  ArrowLeft, 
+  QrCode, 
+  Lightning, 
+  DownloadSimple, 
+  ArrowsOut, 
+  X, 
+  Sparkle, 
+  ArrowSquareOut 
 } from '@phosphor-icons/react';
 import { CredIcon, GooglePayIcon, PhonePeIcon, PaytmIcon } from '../components/ui/BrandIcons';
 import { Toast, type ToastMessage } from '../components/ui/Toast';
@@ -37,7 +37,6 @@ export function PayRedirect() {
   const [copiedVpa, setCopiedVpa] = useState<boolean>(false);
   const [copiedAmount, setCopiedAmount] = useState<boolean>(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
-  const [isSettling, setIsSettling] = useState<boolean>(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [showDetailsInSettled, setShowDetailsInSettled] = useState<boolean>(false);
 
@@ -72,6 +71,35 @@ export function PayRedirect() {
   }, []);
 
   useEffect(() => {
+    // Demo/Preview mode for UI verification
+    if (splitId === 'demo' || searchParams.get('preview') === 'true') {
+      const isSettledDemo = participantId === 'settled' || searchParams.get('status') === 'settled';
+      const mockParticipant: ParticipantData = {
+        id: participantId || 'p_456',
+        name: "Alex",
+        shareAmount: 250.0,
+        status: isSettledDemo ? 'settled' : 'pending',
+        upiLink: "upi://pay?pa=kapav@okhdfcbank&pn=Kapil%20P&am=250.00&cu=INR&tn=Dinner%20Bill%20-%20Split",
+        gatewayUrl: "https://ledgr-kapav.netlify.app/pay?id=split_123&pId=p_456"
+      };
+
+      setSplitData({
+        id: "split_123",
+        title: "Dinner Bill",
+        totalAmount: 1000.0,
+        payeeVpa: "kapav@okhdfcbank",
+        payeeName: "Kapil P",
+        strategy: "equal",
+        createdAt: 1718000000000,
+        participants: {
+          [mockParticipant.id || 'p_456']: mockParticipant
+        }
+      });
+      setParticipant(mockParticipant);
+      setLoading(false);
+      return;
+    }
+
     if (!splitId || !participantId) {
       setError('Invalid or incomplete settlement link. Missing split or participant parameter.');
       setLoading(false);
@@ -108,7 +136,7 @@ export function PayRedirect() {
     };
 
     fetchSplitRecord();
-  }, [splitId, participantId]);
+  }, [splitId, participantId, searchParams]);
 
   // Copy helpers
   const handleCopyVpa = () => {
@@ -132,14 +160,19 @@ export function PayRedirect() {
     if (!splitData || !participant) return;
 
     // Pre-copy VPA as safe backup
-    navigator.clipboard.writeText(splitData.payeeVpa);
+    try {
+      navigator.clipboard.writeText(splitData.payeeVpa);
+    } catch {
+      // ignore
+    }
 
     if (isAndroid) {
       showToast('Opening CRED with pre-filled amount...', 'info');
-      const credIntent = `intent://pay?pa=${encodeURIComponent(splitData.payeeVpa)}&pn=${encodeURIComponent(splitData.payeeName)}&am=${participant.shareAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(splitData.title || 'Ledgr Split')}#Intent;scheme=upi;package=be.cred.android;end;`;
+      // com.dreamplug.androidapp is the official verified package name of CRED on Google Play
+      const credIntent = `intent://pay?pa=${encodeURIComponent(splitData.payeeVpa)}&pn=${encodeURIComponent(splitData.payeeName)}&am=${participant.shareAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(splitData.title || 'Ledgr Split')}#Intent;scheme=upi;package=com.dreamplug.androidapp;end;`;
       window.location.href = credIntent;
     } else {
-      showToast('Redirecting to UPI payment link...', 'info');
+      showToast('Opening UPI payment link...', 'info');
       if (participant.upiLink) {
         window.location.href = participant.upiLink;
       } else {
@@ -149,20 +182,20 @@ export function PayRedirect() {
   };
 
   // Tier 2: Direct App Launchers (GPay, PhonePe, Paytm)
-  const handleLaunchApp = (appName: string, androidPackage: string, iosScheme: string) => {
+  const handleLaunchApp = (appName: string, androidIntent: string, fallbackScheme: string) => {
     if (!splitData || !participant) return;
 
-    // Auto-copy payee VPA to clipboard
-    navigator.clipboard.writeText(splitData.payeeVpa);
+    // Auto-copy payee VPA to clipboard synchronously
+    try {
+      navigator.clipboard.writeText(splitData.payeeVpa);
+    } catch {
+      // ignore
+    }
     showToast(`UPI ID copied! Opening ${appName}...`, 'info');
 
-    const intentUrl = isAndroid
-      ? `intent:#Intent;package=${androidPackage};end;`
-      : iosScheme;
-
-    setTimeout(() => {
-      window.location.href = intentUrl;
-    }, 150);
+    const targetUrl = isAndroid ? androidIntent : fallbackScheme;
+    // Immediate synchronous navigation to preserve Chrome user activation gesture
+    window.location.href = targetUrl;
   };
 
   // Tier 3: QR Code Download
@@ -186,27 +219,6 @@ export function PayRedirect() {
       showToast('QR Code downloaded successfully!', 'success');
     } catch {
       showToast('Download blocked by browser. Please screenshot the QR.', 'warning');
-    }
-  };
-
-  // Settlement Confirmation
-  const handleMarkAsSettled = async () => {
-    if (!splitId || !participantId) return;
-
-    try {
-      setIsSettling(true);
-      const splitRef = doc(db, 'splits', splitId);
-      await updateDoc(splitRef, {
-        [`participants.${participantId}.status`]: 'settled'
-      });
-
-      setParticipant((prev) => (prev ? { ...prev, status: 'settled' } : null));
-      showToast('Payment settled! You are all square 🎉', 'success');
-    } catch (err) {
-      console.error('Firestore Update Error:', err);
-      showToast('Failed to mark as paid. Check your connection.', 'warning');
-    } finally {
-      setIsSettling(false);
     }
   };
 
@@ -448,32 +460,33 @@ export function PayRedirect() {
                 </div>
               </div>
 
-              {/* TIER 1: Instant 1-Tap Pay via CRED */}
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/30 via-primary/30 to-rose-500/30 rounded-2xl blur-sm opacity-70 group-hover:opacity-100 transition duration-300" />
+              {/* TIER 1: CRED Pay */}
+              <div className="pt-1">
                 <button
                   onClick={handleCredPayment}
-                  className="relative w-full py-3.5 px-4 bg-gradient-to-r from-[#18181B] to-[#27272A] hover:from-[#202024] hover:to-[#2e2e33] border border-white/15 rounded-2xl text-left shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-between gap-3"
+                  className="w-full p-3.5 sm:p-4 bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-white/20 rounded-2xl text-left transition-all duration-200 active:scale-[0.99] flex items-center justify-between gap-3 group shadow-sm cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center font-bold text-sm shadow-md shrink-0">
-                      <CredIcon className="w-5 h-5 text-black" />
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-black border border-white/15 p-1 flex items-center justify-center shrink-0 group-hover:border-white/30 transition-colors">
+                      <CredIcon className="w-7 h-7" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-heading font-bold text-white text-sm sm:text-base tracking-tight">
-                          ⚡ Pay with CRED (Instant)
+                        <span className="font-heading font-semibold text-white text-sm sm:text-base tracking-tight truncate">
+                          Pay via CRED
                         </span>
-                        <span className="text-[10px] bg-amber-400/15 text-amber-300 border border-amber-400/30 px-1.5 py-0.5 rounded font-medium">
-                          1-Tap
+                        <span className="text-[10px] text-white/60 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full font-medium shrink-0">
+                          Auto-fills amount
                         </span>
                       </div>
-                      <p className="text-[11px] text-white/60 mt-0.5">
-                        Auto-fills amount & payee • Recommended
+                      <p className="text-[11px] text-white/50 mt-0.5 truncate">
+                        Direct 1-tap intent with pre-filled amount & payee
                       </p>
                     </div>
                   </div>
-                  <ArrowSquareOut weight="bold" className="w-5 h-5 text-white/50 group-hover:text-white transition-colors shrink-0" />
+                  <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 group-hover:text-white group-hover:border-white/25 transition-all shrink-0">
+                    <ArrowSquareOut weight="bold" className="w-4 h-4" />
+                  </div>
                 </button>
               </div>
 
@@ -496,7 +509,7 @@ export function PayRedirect() {
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <button
                       onClick={handleCopyVpa}
-                      className="py-2 px-3 bg-white/5 hover:bg-primary/15 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+                      className="py-2 px-3 bg-white/5 hover:bg-primary/15 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       {copiedVpa ? (
                         <CheckCircle weight="fill" className="w-4 h-4 text-emerald-400" />
@@ -508,7 +521,7 @@ export function PayRedirect() {
 
                     <button
                       onClick={handleCopyAmount}
-                      className="py-2 px-3 bg-white/5 hover:bg-primary/15 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all"
+                      className="py-2 px-3 bg-white/5 hover:bg-primary/15 border border-white/10 hover:border-primary/40 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       {copiedAmount ? (
                         <CheckCircle weight="fill" className="w-4 h-4 text-emerald-400" />
@@ -532,15 +545,15 @@ export function PayRedirect() {
                     <button
                       onClick={() => handleLaunchApp(
                         'Google Pay',
-                        'com.google.android.apps.nbu.paisa.user',
+                        'intent://#Intent;scheme=tez;package=com.google.android.apps.nbu.paisa.user;end;',
                         'gpay://'
                       )}
-                      className="py-3 px-2 bg-background/80 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all group active:scale-95 shadow-sm"
+                      className="py-3 px-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group active:scale-95 shadow-sm cursor-pointer"
                     >
-                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow">
-                        <GooglePayIcon className="w-5 h-5" />
+                      <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-sm overflow-hidden">
+                        <GooglePayIcon className="w-full h-full object-contain" />
                       </div>
-                      <span className="text-xs font-medium text-white/90 group-hover:text-white">
+                      <span className="text-xs font-medium text-white/80 group-hover:text-white">
                         Google Pay
                       </span>
                     </button>
@@ -549,15 +562,15 @@ export function PayRedirect() {
                     <button
                       onClick={() => handleLaunchApp(
                         'PhonePe',
-                        'com.phonepe.app',
+                        'intent://#Intent;scheme=phonepe;package=com.phonepe.app;end;',
                         'phonepe://'
                       )}
-                      className="py-3 px-2 bg-background/80 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all group active:scale-95 shadow-sm"
+                      className="py-3 px-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group active:scale-95 shadow-sm cursor-pointer"
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#5f259f] flex items-center justify-center shadow">
-                        <PhonePeIcon className="w-6 h-6" />
+                      <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-sm overflow-hidden">
+                        <PhonePeIcon className="w-full h-full object-contain" />
                       </div>
-                      <span className="text-xs font-medium text-white/90 group-hover:text-white">
+                      <span className="text-xs font-medium text-white/80 group-hover:text-white">
                         PhonePe
                       </span>
                     </button>
@@ -566,15 +579,15 @@ export function PayRedirect() {
                     <button
                       onClick={() => handleLaunchApp(
                         'Paytm',
-                        'net.one97.paytm',
-                        'paytm://'
+                        'intent://#Intent;scheme=paytmmp;package=net.one97.paytm;end;',
+                        'paytmmp://'
                       )}
-                      className="py-3 px-2 bg-background/80 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all group active:scale-95 shadow-sm"
+                      className="py-3 px-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group active:scale-95 shadow-sm cursor-pointer"
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#002E6E] flex items-center justify-center shadow">
-                        <PaytmIcon className="w-6 h-6" />
+                      <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-sm overflow-hidden">
+                        <PaytmIcon className="w-full h-full object-contain" />
                       </div>
-                      <span className="text-xs font-medium text-white/90 group-hover:text-white">
+                      <span className="text-xs font-medium text-white/80 group-hover:text-white">
                         Paytm
                       </span>
                     </button>
@@ -621,32 +634,17 @@ export function PayRedirect() {
                 </div>
               </div>
 
-              {/* SETTLEMENT CONFIRMATION ACTION */}
+              {/* Settlement Notice */}
               <div className="pt-2">
-                <button
-                  onClick={handleMarkAsSettled}
-                  disabled={isSettling}
-                  className="w-full py-4 px-5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-heading font-bold text-sm sm:text-base rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isSettling ? (
-                    <>
-                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      <span>Recording Settlement...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle weight="fill" className="w-5 h-5 text-white" />
-                      <span>I have completed this payment</span>
-                    </>
-                  )}
-                </button>
-                <p className="text-center text-[11px] text-white/40 mt-1.5">
-                  Marks your ₹{participant.shareAmount.toFixed(2)} share as settled on the ledger
-                </p>
+                <div className="bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-center">
+                  <p className="text-[11px] text-white/50 leading-relaxed">
+                    Once paid, settlement is verified & recorded in the <span className="text-white/80 font-medium">Ledgr app</span>.
+                  </p>
+                </div>
               </div>
 
               {/* Security stamp */}
-              <div className="pt-3 border-t border-white/5 flex items-center justify-center gap-2 text-[11px] text-white/40">
+              <div className="pt-2 border-t border-white/5 flex items-center justify-center gap-2 text-[11px] text-white/40">
                 <ShieldCheck weight="duotone" className="w-4 h-4 text-primary" />
                 <span>Verified Direct NPCI UPI Link • Zero Fees</span>
               </div>

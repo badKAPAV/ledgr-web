@@ -25,7 +25,7 @@ const FAQS = [
     a: "Different banks format transaction texts differently—HDFC typically outputs a 4-digit suffix (XX1234) while ICICI often uses a 3-digit suffix (XX123). Ledgr uses a custom length-prioritized matching engine that automatically handles both variations so you never lose tracking accuracy."
   },
   {
-    q: 'How are premium \"Ledgr Max\" subscriptions managed?',
+    q: 'How are premium "Ledgr Max" subscriptions managed?',
     a: "All subscription payments, plans, and tier upgrades are processed securely via RevenueCat and Google Play Billing. Your payment credentials and billing data are handled entirely through your Google Account—Ledgr never sees or stores your credit card details."
   }
 ]
